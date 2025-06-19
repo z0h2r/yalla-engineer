@@ -1,0 +1,20 @@
+{
+  "name": "whole-rotation",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.0",
+    "@astrojs/tailwind": "^6.0.2",
+    "@tailwindcss/typography": "^0.5.16",
+    "@tailwindcss/vite": "^4.1.10",
+    "astro": "^5.9.4",
+    "gray-matter": "^4.0.3",
+    "tailwindcss": "^3.4.17"
+  }
+}
