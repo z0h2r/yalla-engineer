@@ -118,6 +118,7 @@ export default function Metronome() {
   const [currentBeat, setCurrentBeat] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   
   // Refs for precise timing
   const audioContextRef = useRef(null);
@@ -127,7 +128,16 @@ export default function Metronome() {
 
   // Initialize audio context
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      try {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        setIsLoaded(true);
+      } catch (error) {
+        console.error('Failed to initialize audio context:', error);
+        setIsLoaded(true); // Still show the UI even if audio fails
+      }
+    }
     return () => {
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -204,12 +214,15 @@ export default function Metronome() {
   };
 
   // Start/stop metronome
-  const toggleMetronome = () => {
+  const toggleMetronome = async () => {
     if (!isPlaying) {
       // Start
       const audioContext = audioContextRef.current;
+      if (!audioContext) return;
+      
+      // Resume audio context if suspended (required for mobile)
       if (audioContext.state === 'suspended') {
-        audioContext.resume();
+        await audioContext.resume();
       }
       
       nextBeatTimeRef.current = audioContext.currentTime;
@@ -253,18 +266,34 @@ export default function Metronome() {
     setSelectedPreset(null);
   };
 
+  // Show loading state until component is ready
+  if (!isLoaded) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-0">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl shadow-2xl p-8 mb-8 border border-slate-700">
+          <div className="text-center">
+            <div className="text-6xl font-black text-white mb-2 font-mono tracking-wider animate-pulse">
+              120
+            </div>
+            <div className="text-xl text-slate-300 font-semibold">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4 sm:px-0">
       
       {/* Main Metronome Display */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl shadow-2xl p-8 mb-8 border border-slate-700">
         
         {/* BPM Display */}
         <div className="text-center mb-8">
-          <div className="text-6xl font-black text-white mb-2 font-mono tracking-wider">
+          <div className="text-5xl sm:text-6xl font-black text-white mb-2 font-mono tracking-wider">
             {bpm}
           </div>
-          <div className="text-xl text-slate-300 font-semibold">BPM</div>
+          <div className="text-lg sm:text-xl text-slate-300 font-semibold">BPM</div>
         </div>
 
         {/* Visual Beat Indicator */}
@@ -287,7 +316,7 @@ export default function Metronome() {
         <div className="text-center mb-8">
           <button
             onClick={toggleMetronome}
-            className={`w-24 h-24 rounded-full font-bold transition-all duration-300 shadow-2xl border-4 ${
+            className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full font-bold transition-all duration-300 shadow-2xl border-4 touch-manipulation ${
               isPlaying
                 ? 'bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 border-red-300 shadow-red-500/40 hover:scale-105'
                 : 'bg-gradient-to-br from-blue-400 to-indigo-600 hover:from-blue-500 hover:to-indigo-700 border-blue-300 shadow-blue-500/40 hover:scale-110'
@@ -323,36 +352,36 @@ export default function Metronome() {
           </div>
           
           {/* Button Controls */}
-          <div className="flex items-center justify-center gap-3">
-            <div className="flex gap-2">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-0">
+            <div className="flex gap-1 sm:gap-2">
               <button
                 onClick={() => handleBpmChange(bpm - 10)}
-                className="w-14 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-sm transition-colors"
+                className="w-12 sm:w-14 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-xs sm:text-sm transition-colors touch-manipulation"
               >
                 -10
               </button>
               <button
                 onClick={() => handleBpmChange(bpm - 1)}
-                className="w-12 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-sm transition-colors"
+                className="w-10 sm:w-12 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-xs sm:text-sm transition-colors touch-manipulation"
               >
                 -1
               </button>
             </div>
             
-            <div className="mx-4 px-4 py-2 bg-slate-800 rounded-lg border border-slate-600">
-              <span className="text-white font-mono text-lg font-bold">{bpm}</span>
+            <div className="mx-2 sm:mx-4 px-3 sm:px-4 py-2 bg-slate-800 rounded-lg border border-slate-600">
+              <span className="text-white font-mono text-base sm:text-lg font-bold">{bpm}</span>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2">
               <button
                 onClick={() => handleBpmChange(bpm + 1)}
-                className="w-12 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-sm transition-colors"
+                className="w-10 sm:w-12 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-xs sm:text-sm transition-colors touch-manipulation"
               >
                 +1
               </button>
               <button
                 onClick={() => handleBpmChange(bpm + 10)}
-                className="w-14 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-sm transition-colors"
+                className="w-12 sm:w-14 h-10 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-xs sm:text-sm transition-colors touch-manipulation"
               >
                 +10
               </button>

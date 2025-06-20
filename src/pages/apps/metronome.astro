@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import Metronome from "../../components/apps/Metronome.jsx";
+import MetronomeComponent from "../../components/apps/Metronome.jsx";
 ---
 
 <BaseLayout>
@@ -58,7 +58,7 @@ import Metronome from "../../components/apps/Metronome.jsx";
 
         {/* The Mini App */}
         <div class="mb-16">
-          <Metronome client:load />
+          <MetronomeComponent client:visible />
         </div>
 
         {/* About This App */}
