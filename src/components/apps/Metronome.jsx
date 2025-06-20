@@ -134,19 +134,18 @@ export default function Metronome() {
     if (typeof window !== 'undefined') {
       setIsLoaded(true);
       
-      // Try to create audio context immediately (will be suspended on mobile)
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioContextRef.current = new AudioContext();
-        console.log('Audio context created in useEffect, state:', audioContextRef.current.state);
-        
-        // If it's already running (desktop), mark as enabled
-        if (audioContextRef.current.state === 'running') {
-          setAudioEnabled(true);
-        }
-      } catch (error) {
-        console.error('Failed to initialize audio context in useEffect:', error);
+      // Check if Web Audio API is supported
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) {
+        console.error('Web Audio API not supported in this browser');
+        setAudioError('Your browser does not support Web Audio API');
+        return;
       }
+      
+      console.log('Web Audio API is supported');
+      
+      // Don't create audio context on initial load for mobile - wait for user interaction
+      // This prevents issues with autoplay policies
     }
     return () => {
       if (audioContextRef.current) {
@@ -281,53 +280,86 @@ export default function Metronome() {
   const initializeAudio = async () => {
     console.log('Initializing audio...');
     
-    const audioContext = audioContextRef.current;
-    if (!audioContext) {
-      console.error('No audio context available');
-      return false;
-    }
-    
-    console.log('Current audio context state:', audioContext.state);
-    
-    // Resume audio context if suspended (required for mobile)
-    if (audioContext.state === 'suspended') {
-      try {
-        await audioContext.resume();
-        console.log('Audio context resumed, new state:', audioContext.state);
+    try {
+      // Create or get audio context
+      let audioContext = audioContextRef.current;
+      
+      if (!audioContext) {
+        console.log('Creating new audio context...');
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) {
+          console.error('AudioContext not supported in this browser');
+          return false;
+        }
         
-        // Wait a bit for the state to update
-        await new Promise(resolve => setTimeout(resolve, 100));
-        console.log('Audio context state after delay:', audioContext.state);
-      } catch (error) {
-        console.error('Failed to resume audio context:', error);
+        audioContext = new AudioContext();
+        audioContextRef.current = audioContext;
+        console.log('New audio context created, state:', audioContext.state);
+      }
+      
+      console.log('Current audio context state:', audioContext.state);
+      
+      // For mobile browsers, we need to resume the context
+      if (audioContext.state === 'suspended') {
+        console.log('Attempting to resume suspended audio context...');
+        try {
+          await audioContext.resume();
+          console.log('Audio context resume called, new state:', audioContext.state);
+          
+          // Give it some time to actually resume
+          let attempts = 0;
+          while (audioContext.state !== 'running' && attempts < 10) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+            attempts++;
+            console.log(`Attempt ${attempts}: Audio context state:`, audioContext.state);
+          }
+          
+          if (audioContext.state !== 'running') {
+            console.error('Audio context failed to resume after multiple attempts');
+            return false;
+          }
+        } catch (resumeError) {
+          console.error('Failed to resume audio context:', resumeError);
+          return false;
+        }
+      }
+      
+      // Final verification
+      if (audioContext.state !== 'running') {
+        console.error('Audio context is not running. Current state:', audioContext.state);
         return false;
       }
-    }
-    
-    // Verify the audio context is now running
-    if (audioContext.state !== 'running') {
-      console.error('Audio context still not running after resume attempt');
-      return false;
-    }
-    
-    // Test if audio context is actually working by playing a brief silent sound
-    try {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.01);
-      console.log('Audio test successful');
+      
+      console.log('Audio context is running! Testing audio capabilities...');
+      
+      // Test audio by creating a very brief, silent oscillator
+      try {
+        const testOscillator = audioContext.createOscillator();
+        const testGain = audioContext.createGain();
+        
+        testGain.gain.setValueAtTime(0, audioContext.currentTime);
+        testOscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+        
+        testOscillator.connect(testGain);
+        testGain.connect(audioContext.destination);
+        
+        testOscillator.start(audioContext.currentTime);
+        testOscillator.stop(audioContext.currentTime + 0.001);
+        
+        console.log('Audio test successful - oscillator created and scheduled');
+      } catch (testError) {
+        console.error('Audio test failed:', testError);
+        return false;
+      }
+      
+      setAudioEnabled(true);
+      console.log('✅ Audio fully initialized and ready!');
+      return true;
+      
     } catch (error) {
-      console.error('Audio test failed:', error);
+      console.error('❌ Audio initialization failed with error:', error);
       return false;
     }
-    
-    setAudioEnabled(true);
-    console.log('Audio fully initialized and ready');
-    return true;
   };
 
   // BPM input handler
@@ -424,9 +456,28 @@ export default function Metronome() {
             </p>
           )}
           {audioError && (
-            <p className="text-red-400 text-sm mt-2 max-w-xs mx-auto">
-              {audioError}
-            </p>
+            <div className="mt-2 max-w-xs mx-auto">
+              <p className="text-red-400 text-sm mb-2">
+                {audioError}
+              </p>
+              <button
+                onClick={async () => {
+                  setAudioError(null);
+                  // Force recreate audio context
+                  if (audioContextRef.current) {
+                    audioContextRef.current.close();
+                    audioContextRef.current = null;
+                  }
+                  const success = await initializeAudio();
+                  if (!success) {
+                    setAudioError('Audio still not working. Your browser may not support Web Audio API.');
+                  }
+                }}
+                className="bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1 rounded-lg transition-colors touch-manipulation"
+              >
+                Try Again
+              </button>
+            </div>
           )}
         </div>
 
