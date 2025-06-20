@@ -1,5 +1,44 @@
 import { useState, useEffect, useRef } from 'react';
 
+// Create simple audio data URLs for fallback (beep sounds)
+const createBeepDataUrl = (frequency, duration = 0.1) => {
+  const sampleRate = 8000;
+  const samples = Math.floor(sampleRate * duration);
+  const buffer = new ArrayBuffer(44 + samples * 2);
+  const view = new DataView(buffer);
+  
+  // WAV header
+  const writeString = (offset, string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+  
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + samples * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, samples * 2, true);
+  
+  // Generate beep
+  for (let i = 0; i < samples; i++) {
+    const t = i / sampleRate;
+    const sample = Math.sin(2 * Math.PI * frequency * t) * 0.3 * Math.exp(-t * 10);
+    view.setInt16(44 + i * 2, sample * 32767, true);
+  }
+  
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  return URL.createObjectURL(blob);
+};
+
 // Metronome sound configurations
 const metronomeTypes = {
   classic: {
@@ -121,6 +160,8 @@ export default function Metronome() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [audioError, setAudioError] = useState(null);
+  const [useWebAudio, setUseWebAudio] = useState(true);
+  const audioElementRef = useRef(null);
   
   // Refs for precise timing
   const audioContextRef = useRef(null);
@@ -137,8 +178,18 @@ export default function Metronome() {
       // Check if Web Audio API is supported
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) {
-        console.error('Web Audio API not supported in this browser');
-        setAudioError('Your browser does not support Web Audio API');
+        console.log('Web Audio API not supported, using HTML5 Audio fallback');
+        setUseWebAudio(false);
+        
+        // Create fallback audio element
+        const audio = new Audio();
+        const soundConfig = metronomeTypes[selectedSound];
+        const audioUrl = createBeepDataUrl(soundConfig.frequency, 0.1);
+        audio.src = audioUrl;
+        audio.preload = 'auto';
+        audioElementRef.current = audio;
+        
+        setAudioEnabled(true);
         return;
       }
       
@@ -151,10 +202,24 @@ export default function Metronome() {
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
+      if (audioElementRef.current) {
+        URL.revokeObjectURL(audioElementRef.current.src);
+      }
     };
   }, []);
 
-  // Create metronome sound
+  // Update fallback audio when sound type changes
+  useEffect(() => {
+    if (!useWebAudio && audioElementRef.current) {
+      const soundConfig = metronomeTypes[selectedSound];
+      const audioUrl = createBeepDataUrl(soundConfig.frequency, 0.1);
+      URL.revokeObjectURL(audioElementRef.current.src);
+      audioElementRef.current.src = audioUrl;
+      audioElementRef.current.preload = 'auto';
+    }
+  }, [selectedSound, useWebAudio]);
+
+  // Create metronome sound (Web Audio API version)
   const playMetronomeSound = (when = 0) => {
     const audioContext = audioContextRef.current;
     if (!audioContext) return;
@@ -198,7 +263,18 @@ export default function Metronome() {
     harmonic.stop(when + soundConfig.decay * 0.7);
   };
 
-  // Precise metronome scheduler
+  // Fallback audio using HTML5 Audio (for browsers without Web Audio API)
+  const playFallbackSound = () => {
+    if (audioElementRef.current) {
+      audioElementRef.current.currentTime = 0;
+      audioElementRef.current.volume = volume;
+      audioElementRef.current.play().catch(error => {
+        console.error('Failed to play fallback audio:', error);
+      });
+    }
+  };
+
+  // Precise metronome scheduler (Web Audio API version)
   const scheduler = () => {
     const audioContext = audioContextRef.current;
     if (!audioContext) return;
@@ -222,6 +298,19 @@ export default function Metronome() {
     timerIdRef.current = setTimeout(scheduler, lookAhead);
   };
 
+  // Simple fallback scheduler (HTML5 Audio version)
+  const fallbackScheduler = () => {
+    playFallbackSound();
+    
+    // Update beat counter for visual feedback
+    beatCountRef.current = (beatCountRef.current + 1) % 4;
+    setCurrentBeat(beatCountRef.current);
+    
+    // Calculate next beat time (less precise but works)
+    const millisecondsPerBeat = (60.0 / bpm) * 1000;
+    timerIdRef.current = setTimeout(fallbackScheduler, millisecondsPerBeat);
+  };
+
   // Start/stop metronome
   const toggleMetronome = async () => {
     console.log('Toggle metronome clicked, isPlaying:', isPlaying);
@@ -229,29 +318,43 @@ export default function Metronome() {
     
     if (!isPlaying) {
       try {
-        // Initialize audio on first interaction (required for mobile)
-        const audioInitialized = await initializeAudio();
-        if (!audioInitialized) {
-          setAudioError('Failed to initialize audio. Please try again.');
-          console.error('Failed to initialize audio');
-          return;
+        if (useWebAudio) {
+          // Web Audio API path
+          const audioInitialized = await initializeAudio();
+          if (!audioInitialized) {
+            setAudioError('Failed to initialize audio. Please try again.');
+            console.error('Failed to initialize audio');
+            return;
+          }
+          
+          const audioContext = audioContextRef.current;
+          
+          // Double-check audio context is running
+          if (audioContext.state !== 'running') {
+            setAudioError(`Audio context not ready (${audioContext.state}). Please try again.`);
+            console.error('Audio context not running, state:', audioContext.state);
+            return;
+          }
+          
+          nextBeatTimeRef.current = audioContext.currentTime;
+          beatCountRef.current = 0;
+          setCurrentBeat(0);
+          scheduler();
+          setIsPlaying(true);
+          console.log('Metronome started successfully with Web Audio API');
+        } else {
+          // HTML5 Audio fallback path
+          if (!audioElementRef.current) {
+            setAudioError('Audio not ready. Please try again.');
+            return;
+          }
+          
+          beatCountRef.current = 0;
+          setCurrentBeat(0);
+          fallbackScheduler();
+          setIsPlaying(true);
+          console.log('Metronome started successfully with HTML5 Audio fallback');
         }
-        
-        const audioContext = audioContextRef.current;
-        
-        // Double-check audio context is running
-        if (audioContext.state !== 'running') {
-          setAudioError(`Audio context not ready (${audioContext.state}). Please try again.`);
-          console.error('Audio context not running, state:', audioContext.state);
-          return;
-        }
-        
-        nextBeatTimeRef.current = audioContext.currentTime;
-        beatCountRef.current = 0;
-        setCurrentBeat(0);
-        scheduler();
-        setIsPlaying(true);
-        console.log('Metronome started successfully');
       } catch (error) {
         setAudioError('Error starting metronome: ' + error.message);
         console.error('Error in toggleMetronome:', error);
@@ -553,7 +656,14 @@ export default function Metronome() {
 
       {/* Sound Selection */}
       <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-6 mb-8">
-        <h3 className="text-2xl font-black text-gray-800 mb-4 text-center">🎵 Choose Your Sound</h3>
+        <h3 className="text-2xl font-black text-gray-800 mb-4 text-center">
+          🎵 Choose Your Sound
+          {!useWebAudio && (
+            <span className="text-sm font-normal text-orange-600 block mt-1">
+              (Using fallback audio - limited sound options)
+            </span>
+          )}
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {Object.entries(metronomeTypes).map(([key, sound]) => (
             <button
