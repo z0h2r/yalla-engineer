@@ -1,185 +1,170 @@
-The ROI engineer - PRD
-
-# 🧠 PRD – The ROI Engineer Blog Platform
+# 🧠 PRD – Yalla Engineer Blog + Mini Apps Platform
 
 ## ✨ Product Title
 
-**The ROI Engineer**  
-_A pragmatic software engineering blog on maximizing time, energy, and impact._
+**Yalla Engineer**  
+_"Just another dev blog with nonsense" – Writing for myself, getting ROI from experiences by sharing them._
 
 ---
 
 ## 📌 Problem Statement
 
-Software engineers often consume large amounts of content but fail to synthesize or reflect on what they've learned. There’s a need for a personal yet public space where writing is used as a tool for clarity, accountability, and deep thinking — especially around high-leverage engineering principles.
+Most developer blogs try to be everything to everyone. They're optimized for SEO, filled with generic tutorials, or overly polished to the point of being inauthentic.
 
-Most blogs are bloated, hard to navigate, or optimized for SEO, not for ROI of the reader. The goal here is to build a minimalist, _high-signal_ blog optimized for consumption and contribution by productivity-minded engineers.
+**The real need:** A personal space to articulate thoughts, capture lessons learned, and experiment with building useful tools – with the side benefit that others might find it useful too.
+
+This isn't about becoming a "thought leader" or maximizing page views. It's about **getting ROI from experiences** by documenting them, and **learning by building** mini apps that solve real problems.
 
 ---
 
 ## 🧭 Goals
 
-- Write and publish new posts efficiently in markdown.
-    
-- Ensure fast, pleasant, focused reading experience for developers.
-    
-- Emphasize clear code formatting, visual aids (images, diagrams, YouTube embeds).
-    
-- Reflect your personal philosophy: **Engineer for ROI**, not output.
-    
-- Treat the blog itself as a minimal product — **low maintenance, high clarity**.
-    
+### Primary (Personal)
+- **Articulate thinking** through writing – make sure I actually understand what I've learned
+- **Capture lessons** from projects, mistakes, and discoveries before I forget them
+- **Practice building** – use mini apps as learning vehicles for UI/UX, product thinking, and new tech
+- **Low maintenance** – focus on content and building, not blog optimization
+
+### Secondary (Public Benefit)
+- **Share authentic experiences** – real problems, real solutions, mistakes included
+- **Provide useful tools** – mini apps that solve actual problems people have
+- **Document learning process** – show the "why I built this" and "what I learned" journey
 
 ---
 
 ## 🎯 Target Audience
 
-- You (as a writer and reflective practitioner).
-    
-- Software engineers seeking ways to improve how they work and think.
-    
-- Readers interested in productivity, engineering systems, and maximizing outcomes.
-    
+### Primary: **Me** 
+- Processing experiences and learning
+- Building tools I actually want to use
+- Keeping a record of what I figure out
+
+### Secondary: **Other developers who appreciate honesty**
+- People tired of over-polished dev content
+- Developers who want to see real learning processes
+- Anyone who might find the mini apps useful
 
 ---
 
 ## 🧱 Functional Requirements
 
-### ✅ Content Model
+### ✅ Blog Posts
 
 Each **Post** includes:
-
 - `title` (string)
-    
-- `slug` (auto-generated from title)
-    
-- `datePublished` (date)
-    
-- `category` (optional string from a set)
-    
-- `content` (markdown with support for code blocks, embeds, images)
-    
-- `summary` (auto-excerpt or custom, shown in previews)
-    
+- `slug` (auto-generated)
+- `date` (date published)
+- `summary` (brief description for cards)
+- `content` (MDX with code blocks, no categories needed)
 - `coverImage` (optional)
-    
-- `readingTime` (calculated)
-    
+- **Dummy commit hash** (for developer aesthetic)
 
-### ✅ Categories
+**Content Types:**
+- **Learning posts** – "Here's what I figured out about X"
+- **Tool builds** – "Why I built this mini app and what I learned"
+- **Mistake documentation** – "How I messed up and what I learned"
+- **Quick wins** – Short, practical discoveries
 
-Predefined, tag-style categories like:
+### ✅ Mini Apps
 
-- `Productivity`
-    
-- `Engineering Culture`
-    
-- `Infra`
-    
-- `Architecture`
-    
-- `Dev Tools`
-    
-- `Debugging`
-    
-- `ROI Principles`
-    
+Interactive React components embedded in the blog:
+- **Purpose**: Learning vehicles + actually useful tools
+- **Integration**: Each app gets its own page with context about why it was built
+- **Documentation**: "What I learned" section explaining technical and UX decisions
+- **Iteration notes**: "Next version will..." to show continuous improvement mindset
 
-### ✅ Author
+**Current Apps:**
+1. **Guitar Chord Finder** – Interactive chord diagrams
+2. **Guitar Tuner** – Web Audio API reference tones  
+3. **Recipe Scaler** – Smart recipe portion calculator
 
-Single-author system (you), no auth required. Your personal bio and links at the bottom of each post.
+### ✅ Homepage Integration
+
+- **Latest builds** (blog posts) with commit hashes
+- **Mini Apps** section showcasing interactive tools
+- **Personal intro** that sets honest expectations
+- No categories, no SEO optimization, no newsletter signup
 
 ---
 
 ## 🖼 UX/UI Principles
 
-1. **Minimalism & Focus**
-    
-    - No sidebars or popups.
-        
-    - Content centered, max-width readable.
-        
-    - Subtle typography hierarchy, dark mode support.
-        
-2. **High Information Density**
-    
-    - Code blocks should support syntax highlighting and line numbers.
-        
-    - Embedded diagrams, videos, and images should fit naturally without crowding.
-        
-3. **Effortless Discoverability**
-    
-    - Recent posts on homepage.
-        
-    - Category filter (e.g., pills or tabs).
-        
-    - Optional search bar, fuzzy matches by title/summary.
-        
-4. **Snappy Performance**
-    
-    - Static site generation (e.g., Next.js, Astro, Hugo).
-        
-    - Instant loading between posts via prefetching.
-        
-5. **Readable on Mobile**
-    
-    - Fully responsive, but still dev-first in design.
-        
-    - Code and images should scroll horizontally, not break layout.
-        
+### 1. **Authentic, Not Polished**
+- Personal tone: "I'm mainly writing this for myself"
+- Real commit hashes on blog posts (aesthetic + functional)
+- "Ship it, fix it, yalla again" energy
+- Mistakes and learning process included
+
+### 2. **Developer-First Design**
+- Terminal-style elements (commit hashes, monospace fonts)
+- Code-focused color palette (blues, greens, purples)
+- Clean but energetic (not corporate)
+- Mobile responsive but desktop-optimized
+
+### 3. **Interactive Learning**
+- Mini apps demonstrate concepts in action
+- Each tool explains its technical implementation
+- Learning notes show decision-making process
+- Iteration plans show continuous improvement
+
+### 4. **Low Maintenance, High Signal**
+- No comments system (too much overhead)
+- No categories or tags (keep it simple)
+- No analytics dashboard (focus on building, not metrics)
+- Simple deployment and updates
 
 ---
 
-## 🧠 Interesting Features (Aligned with ROI Theme)
+## 🛠 Mini Apps Strategy
 
-- **Reading Time Tracker** → show estimated time and optionally allow "Start timer" to track actual time spent vs. reading time.
-    
-- **ROI Nuggets** → TL;DR section per post with a distilled insight.
-    
-- **Today I Learned (TIL) mode** → A lightweight format for short-form, tweet-length insights.
-    
-- **Highlight & Copy Snippet** → Clickable copy buttons on code blocks.
-    
-- **Backlinks & Topic Graph** → Visual map of connected ideas (optional, for later).
-    
-- **"Last Updated" notice** → Encourages iterative writing, aligns with improving ROI over time.
-    
-- **GitHub Discussion/Comment Embed** → Enable reader feedback via GitHub issues or comment threads.
-    
-- **Focus Mode** → Toggle to remove all non-content elements (like Medium’s reader mode).
-    
+### **Learning Vehicles**
+Each mini app serves multiple purposes:
+- **Solve a real problem** I have
+- **Practice new technology** (Web Audio API, React patterns, etc.)
+- **Document the process** of building and learning
+- **Iterate and improve** based on usage
+
+### **Current Focus Areas**
+- **Music tools** (guitar learning aids)
+- **Productivity tools** (cooking, time management)
+- **Developer utilities** (text processing, calculators)
+
+### **Integration with Blog**
+- Apps showcased on homepage
+- Dedicated pages explaining why/how they were built
+- Technical learning documented in detail
+- Future iteration plans shared openly
 
 ---
 
-## 🛠 Implementation Guidelines
+## 🎯 Success Metrics (Personal)
 
-- **Tech stack:**
-    
-    - Static site generator: **Next.js** or **Astro**
-        
-    - Markdown support: **MDX** for dynamic content (JS snippets, embeds)
-        
-    - Styling: **Tailwind CSS**
-        
-    - Deploy: **Vercel** or **Netlify**
-        
-    - Content in `/posts/*.mdx`, auto-imported and rendered.
-        
-- **Post Structure Example:**
-    
+### **For Writing:**
+- Do I understand topics better after writing about them?
+- Am I capturing lessons before I forget them?
+- Is writing helping me process experiences?
 
-md
+### **For Mini Apps:**
+- Am I learning new technical skills?
+- Are the tools actually useful to me?
+- Am I getting better at product thinking and UX?
 
-CopyEdit
+### **For the Platform:**
+- Is it easy to add new posts and apps?
+- Am I maintaining the "yalla" energy and honest tone?
+- Do I want to keep building on this?
 
-`--- title: "The Power of Boring Tools" slug: power-of-boring-tools date: 2025-06-18 category: "Dev Tools" summary: "Why boring tools often yield the highest ROI in production systems." ---  # The Power of Boring Tools  > TL;DR: Boring == battle-tested. ROI lives in reliability.  ...markdown content here...  ```ts const config = createConfig({ safeMode: true });`
+---
 
-[Watch this concept explained on YouTube](https://youtube.com/link)
+## 🚀 Philosophy
 
-yaml
+**"Writing for myself - getting ROI from experiences by sharing them"**
 
-CopyEdit
+This platform exists primarily for personal learning and growth. If others find it useful, that's a bonus. The focus is on:
 
-`---  ## 📈 Success Metrics  - ✅ New post published within 2 minutes of writing markdown. - ✅ Reader completes reading 80% of post on average (scroll depth analytics). - ✅ You consistently write 1 post/week for 4 weeks. - ✅ At least 3 engineers mention they bookmarked or reused a concept/code from your blog.  ---  ## 🏁 Future Ideas  - RSS feed - Subscribe via email - Auto-generate LinkedIn post from summary - Weekly digest of your own best ideas - GitHub integration to show changelogs in posts  ---  Would you like a boilerplate starter template or help implementing this with something like Astro/Next.js?`
+- **Authentic documentation** of real learning
+- **Building useful tools** while practicing new skills  
+- **Honest reflection** on successes and failures
+- **Continuous iteration** with a "ship it, fix it, yalla again" mindset
 
-2/2
+The goal isn't to become a "content creator" or "influencer" – it's to get more value out of experiences by articulating and sharing them, while building practical skills through mini app development.
