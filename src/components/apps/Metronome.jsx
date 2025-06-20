@@ -119,6 +119,7 @@ export default function Metronome() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(false);
   
   // Refs for precise timing
   const audioContextRef = useRef(null);
@@ -130,13 +131,18 @@ export default function Metronome() {
   useEffect(() => {
     // Check if we're in a browser environment
     if (typeof window !== 'undefined') {
-      try {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-        setIsLoaded(true);
-      } catch (error) {
-        console.error('Failed to initialize audio context:', error);
-        setIsLoaded(true); // Still show the UI even if audio fails
+      // Don't create audio context immediately on mobile - wait for user interaction
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (!isMobile) {
+        try {
+          audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+          setAudioEnabled(true);
+        } catch (error) {
+          console.error('Failed to initialize audio context:', error);
+        }
       }
+      setIsLoaded(true);
     }
     return () => {
       if (audioContextRef.current) {
@@ -216,13 +222,19 @@ export default function Metronome() {
   // Start/stop metronome
   const toggleMetronome = async () => {
     if (!isPlaying) {
-      // Start
-      const audioContext = audioContextRef.current;
-      if (!audioContext) return;
+      // Initialize audio on first interaction (required for mobile)
+      const audioInitialized = await initializeAudio();
+      if (!audioInitialized) {
+        console.error('Failed to initialize audio');
+        return;
+      }
       
-      // Resume audio context if suspended (required for mobile)
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
+      const audioContext = audioContextRef.current;
+      
+      // Double-check audio context is running
+      if (audioContext.state !== 'running') {
+        console.error('Audio context not running, state:', audioContext.state);
+        return;
       }
       
       nextBeatTimeRef.current = audioContext.currentTime;
@@ -230,6 +242,7 @@ export default function Metronome() {
       setCurrentBeat(0);
       scheduler();
       setIsPlaying(true);
+      console.log('Metronome started successfully');
     } else {
       // Stop
       if (timerIdRef.current) {
@@ -237,6 +250,7 @@ export default function Metronome() {
       }
       setIsPlaying(false);
       setCurrentBeat(0);
+      console.log('Metronome stopped');
     }
   };
 
@@ -248,6 +262,32 @@ export default function Metronome() {
       }
     };
   }, []);
+
+  // Initialize audio on first user interaction (mobile requirement)
+  const initializeAudio = async () => {
+    if (!audioContextRef.current) {
+      try {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('Audio context created on user interaction');
+      } catch (error) {
+        console.error('Failed to create audio context:', error);
+        return false;
+      }
+    }
+    
+    if (audioContextRef.current.state === 'suspended') {
+      try {
+        await audioContextRef.current.resume();
+        console.log('Audio context resumed on user interaction');
+      } catch (error) {
+        console.error('Failed to resume audio context:', error);
+        return false;
+      }
+    }
+    
+    setAudioEnabled(true);
+    return true;
+  };
 
   // BPM input handler
   const handleBpmChange = (newBpm) => {
@@ -319,6 +359,8 @@ export default function Metronome() {
             className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full font-bold transition-all duration-300 shadow-2xl border-4 touch-manipulation ${
               isPlaying
                 ? 'bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 border-red-300 shadow-red-500/40 hover:scale-105'
+                : !audioEnabled
+                ? 'bg-gradient-to-br from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 border-orange-300 shadow-orange-500/40 hover:scale-110'
                 : 'bg-gradient-to-br from-blue-400 to-indigo-600 hover:from-blue-500 hover:to-indigo-700 border-blue-300 shadow-blue-500/40 hover:scale-110'
             }`}
           >
@@ -335,6 +377,11 @@ export default function Metronome() {
               </div>
             )}
           </button>
+          {!audioEnabled && (
+            <p className="text-slate-400 text-sm mt-2">
+              Tap to enable audio
+            </p>
+          )}
         </div>
 
         {/* BPM Controls */}
