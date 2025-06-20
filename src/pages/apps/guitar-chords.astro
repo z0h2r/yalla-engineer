@@ -1,0 +1,89 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GuitarChordFinder from '../../components/apps/GuitarChordFinder.jsx';
+---
+
+<BaseLayout>
+  <a slot="header-left" href="/" class="mr-4 flex items-center accent-text hover:secondary-heading transition-colors group" aria-label="Back to home">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 group-hover:-translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+    <span class="text-sm font-bold">back</span>
+  </a>
+  <span slot="header-title">Guitar Chords</span>
+  
+  <div class="relative left-1/2 right-1/2 -mx-[50vw] w-screen py-0">
+    <div class="bg-gradient-to-br from-blue-50 via-purple-50 to-cyan-50 border border-gray-200 rounded-2xl lg:rounded-none shadow-2xl overflow-hidden w-full min-h-screen backdrop-blur-sm">
+      <div class="max-w-6xl mx-auto py-16 px-6 sm:px-8">
+        
+        <header class="text-center mb-12">
+          <h1 class="text-4xl sm:text-5xl font-black mb-6 primary-heading tracking-tight">Guitar Chord Finder 🎸</h1>
+          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+            A simple tool to visualize guitar chord fingerings. Perfect for beginners learning their first chords!
+          </p>
+          <div class="flex items-center justify-center space-x-4 mt-6">
+            <div class="h-1 w-8 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
+            <span class="text-sm font-bold secondary-heading">Mini App #001</span>
+            <div class="h-1 w-8 bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>
+          </div>
+        </header>
+
+        {/* The Mini App */}
+        <div class="mb-16">
+          <GuitarChordFinder client:load />
+        </div>
+
+        {/* About This App */}
+        <div class="max-w-4xl mx-auto">
+          <div class="bg-white/80 rounded-2xl p-8 shadow-lg border-2 border-gray-200 backdrop-blur-sm">
+            <h2 class="text-2xl font-black mb-6 secondary-heading">Why I Built This 🤔</h2>
+            <div class="prose prose-lg max-w-none text-gray-700">
+              <p class="mb-4">
+                As someone learning guitar, I was always looking up chord diagrams online. Most sites were cluttered with ads or had confusing layouts. 
+              </p>
+              <p class="mb-4">
+                This mini app focuses on <strong>simplicity</strong> - just the essential chords with a clean, visual interface. Plus, I wanted to practice building interactive React components within my Astro blog.
+              </p>
+              
+              <h3 class="text-xl font-bold mb-3 text-blue-600">What I Learned:</h3>
+              <ul class="space-y-2 mb-6">
+                <li class="flex items-start">
+                  <span class="text-blue-500 mr-2">→</span>
+                  <span>React state management for interactive UI</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-blue-500 mr-2">→</span>
+                  <span>CSS positioning for the fretboard visualization</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-blue-500 mr-2">→</span>
+                  <span>Responsive design for mobile guitar practice</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-blue-500 mr-2">→</span>
+                  <span>Integrating React islands into Astro</span>
+                </li>
+              </ul>
+
+              <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                <p class="text-blue-800 mb-0">
+                  <strong>Next iteration:</strong> Add audio playback for each chord, chord progressions, and maybe a simple metronome. The goal is to keep building useful tools while learning!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      
+      <footer class="border-t-2 border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
+        <div class="max-w-6xl mx-auto py-10 px-6 text-center">
+          <a href="/" class="text-lg font-bold text-gray-700 hover:text-blue-600 transition-colors">
+            ← Back to all builds
+          </a>
+          <p class="text-sm text-gray-500 font-mono mt-4">
+            Keep building! 🚀
+          </p>
+        </div>
+      </footer>
+    </div>
+  </div>
+</BaseLayout> 

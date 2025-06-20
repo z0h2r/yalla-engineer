@@ -14,7 +14,7 @@ const posts = postFiles.map(filename => {
 	return { ...data, slug: data.slug || filename.replace(/\.mdx$/, '') };
 }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
-// Generate fake commit hash based on post title and date
+// Generate dummy commit hash based on post title and date
 function generateCommitHash(title, date) {
 	const seed = title + date;
 	let hash = 0;
@@ -99,6 +99,69 @@ function generateCommitHash(title, date) {
 								);
 							})
 						)}
+					</div>
+				</section>
+
+				{/* Mini Apps Section */}
+				<section class="mt-20">
+					<h2 class="text-3xl font-bold mb-10 secondary-heading flex items-center justify-center sm:justify-start">
+						<span class="text-2xl mr-3">🛠️</span>
+						Mini Apps
+					</h2>
+					<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+						<a href="/apps/guitar-chords" class="group block">
+							<div class="bg-white/80 rounded-2xl p-6 shadow-lg border-2 border-gray-200 hover:shadow-2xl hover:border-blue-400 transition-all duration-200 backdrop-blur-sm hover:scale-[1.02] hover:-translate-y-1">
+								<div class="flex items-start gap-4">
+									<div class="w-16 h-16 bg-gradient-to-br from-amber-100 to-orange-200 rounded-xl border-2 border-amber-300 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-200">
+										🎸
+									</div>
+									<div class="flex-1">
+										<h3 class="text-xl font-black mb-2 accent-text group-hover:underline decoration-2 underline-offset-4 decoration-blue-500">Guitar Chord Finder</h3>
+										<p class="text-gray-600 text-sm mb-3">Interactive chord diagrams for guitar learners. Clean, simple, and mobile-friendly.</p>
+									</div>
+								</div>
+								<div class="mt-4 flex items-center text-blue-600 font-semibold text-sm">
+									<span class="mr-2">Try it out</span>
+									<span class="group-hover:translate-x-2 transition-transform">→</span>
+								</div>
+							</div>
+						</a>
+						
+						<a href="/apps/guitar-tuner" class="group block">
+							<div class="bg-white/80 rounded-2xl p-6 shadow-lg border-2 border-gray-200 hover:shadow-2xl hover:border-blue-400 transition-all duration-200 backdrop-blur-sm hover:scale-[1.02] hover:-translate-y-1">
+								<div class="flex items-start gap-4">
+									<div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-200 rounded-xl border-2 border-purple-300 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-200">
+										🎵
+									</div>
+									<div class="flex-1">
+										<h3 class="text-xl font-black mb-2 accent-text group-hover:underline decoration-2 underline-offset-4 decoration-blue-500">Guitar Tuner</h3>
+										<p class="text-gray-600 text-sm mb-3">Reference tones for standard guitar tuning. Uses Web Audio API for precise frequencies.</p>
+									</div>
+								</div>
+								<div class="mt-4 flex items-center text-blue-600 font-semibold text-sm">
+									<span class="mr-2">Listen now</span>
+									<span class="group-hover:translate-x-2 transition-transform">→</span>
+								</div>
+							</div>
+						</a>
+						
+						<a href="/apps/recipe-scaler" class="group block">
+							<div class="bg-white/80 rounded-2xl p-6 shadow-lg border-2 border-gray-200 hover:shadow-2xl hover:border-blue-400 transition-all duration-200 backdrop-blur-sm hover:scale-[1.02] hover:-translate-y-1">
+								<div class="flex items-start gap-4">
+									<div class="w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-200 rounded-xl border-2 border-green-300 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-200">
+										👨‍🍳
+									</div>
+									<div class="flex-1">
+										<h3 class="text-xl font-black mb-2 accent-text group-hover:underline decoration-2 underline-offset-4 decoration-blue-500">Recipe Scaler</h3>
+										<p class="text-gray-600 text-sm mb-3">Scale any recipe up or down with smart unit conversions and cooking tips.</p>
+									</div>
+								</div>
+								<div class="mt-4 flex items-center text-blue-600 font-semibold text-sm">
+									<span class="mr-2">Scale it</span>
+									<span class="group-hover:translate-x-2 transition-transform">→</span>
+								</div>
+							</div>
+						</a>
 					</div>
 				</section>
 			</div>
