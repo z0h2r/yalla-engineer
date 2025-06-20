@@ -17,27 +17,6 @@
 ---
 
 ## 🏗️ Architecture Details
-
-### **Blog Structure**
-```
-src/
-├── content/posts/           # MDX blog posts
-├── layouts/BaseLayout.astro # Shared layout
-├── pages/
-│   ├── index.astro         # Homepage with posts + mini apps
-│   ├── about.astro         # Personal about page
-│   ├── posts/[slug].astro  # Dynamic post pages
-│   └── apps/               # Mini app pages
-│       ├── guitar-chords.astro
-│       ├── guitar-tuner.astro
-│       └── recipe-scaler.astro
-├── components/apps/         # React mini app components
-│   ├── GuitarChordFinder.jsx
-│   ├── GuitarTuner.jsx
-│   └── RecipeScaler.jsx
-└── styles/global.css       # Custom CSS classes
-```
-
 ### **Content Model**
 ```yaml
 # Blog Post (MDX frontmatter)
