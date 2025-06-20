@@ -120,6 +120,7 @@ export default function Metronome() {
   const [selectedPreset, setSelectedPreset] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioError, setAudioError] = useState(null);
   
   // Refs for precise timing
   const audioContextRef = useRef(null);
@@ -131,18 +132,21 @@ export default function Metronome() {
   useEffect(() => {
     // Check if we're in a browser environment
     if (typeof window !== 'undefined') {
-      // Don't create audio context immediately on mobile - wait for user interaction
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
-      if (!isMobile) {
-        try {
-          audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-          setAudioEnabled(true);
-        } catch (error) {
-          console.error('Failed to initialize audio context:', error);
-        }
-      }
       setIsLoaded(true);
+      
+      // Try to create audio context immediately (will be suspended on mobile)
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioContextRef.current = new AudioContext();
+        console.log('Audio context created in useEffect, state:', audioContextRef.current.state);
+        
+        // If it's already running (desktop), mark as enabled
+        if (audioContextRef.current.state === 'running') {
+          setAudioEnabled(true);
+        }
+      } catch (error) {
+        console.error('Failed to initialize audio context in useEffect:', error);
+      }
     }
     return () => {
       if (audioContextRef.current) {
@@ -221,28 +225,38 @@ export default function Metronome() {
 
   // Start/stop metronome
   const toggleMetronome = async () => {
+    console.log('Toggle metronome clicked, isPlaying:', isPlaying);
+    setAudioError(null);
+    
     if (!isPlaying) {
-      // Initialize audio on first interaction (required for mobile)
-      const audioInitialized = await initializeAudio();
-      if (!audioInitialized) {
-        console.error('Failed to initialize audio');
-        return;
+      try {
+        // Initialize audio on first interaction (required for mobile)
+        const audioInitialized = await initializeAudio();
+        if (!audioInitialized) {
+          setAudioError('Failed to initialize audio. Please try again.');
+          console.error('Failed to initialize audio');
+          return;
+        }
+        
+        const audioContext = audioContextRef.current;
+        
+        // Double-check audio context is running
+        if (audioContext.state !== 'running') {
+          setAudioError(`Audio context not ready (${audioContext.state}). Please try again.`);
+          console.error('Audio context not running, state:', audioContext.state);
+          return;
+        }
+        
+        nextBeatTimeRef.current = audioContext.currentTime;
+        beatCountRef.current = 0;
+        setCurrentBeat(0);
+        scheduler();
+        setIsPlaying(true);
+        console.log('Metronome started successfully');
+      } catch (error) {
+        setAudioError('Error starting metronome: ' + error.message);
+        console.error('Error in toggleMetronome:', error);
       }
-      
-      const audioContext = audioContextRef.current;
-      
-      // Double-check audio context is running
-      if (audioContext.state !== 'running') {
-        console.error('Audio context not running, state:', audioContext.state);
-        return;
-      }
-      
-      nextBeatTimeRef.current = audioContext.currentTime;
-      beatCountRef.current = 0;
-      setCurrentBeat(0);
-      scheduler();
-      setIsPlaying(true);
-      console.log('Metronome started successfully');
     } else {
       // Stop
       if (timerIdRef.current) {
@@ -265,27 +279,54 @@ export default function Metronome() {
 
   // Initialize audio on first user interaction (mobile requirement)
   const initializeAudio = async () => {
-    if (!audioContextRef.current) {
-      try {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('Audio context created on user interaction');
-      } catch (error) {
-        console.error('Failed to create audio context:', error);
-        return false;
-      }
+    console.log('Initializing audio...');
+    
+    const audioContext = audioContextRef.current;
+    if (!audioContext) {
+      console.error('No audio context available');
+      return false;
     }
     
-    if (audioContextRef.current.state === 'suspended') {
+    console.log('Current audio context state:', audioContext.state);
+    
+    // Resume audio context if suspended (required for mobile)
+    if (audioContext.state === 'suspended') {
       try {
-        await audioContextRef.current.resume();
-        console.log('Audio context resumed on user interaction');
+        await audioContext.resume();
+        console.log('Audio context resumed, new state:', audioContext.state);
+        
+        // Wait a bit for the state to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log('Audio context state after delay:', audioContext.state);
       } catch (error) {
         console.error('Failed to resume audio context:', error);
         return false;
       }
     }
     
+    // Verify the audio context is now running
+    if (audioContext.state !== 'running') {
+      console.error('Audio context still not running after resume attempt');
+      return false;
+    }
+    
+    // Test if audio context is actually working by playing a brief silent sound
+    try {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.01);
+      console.log('Audio test successful');
+    } catch (error) {
+      console.error('Audio test failed:', error);
+      return false;
+    }
+    
     setAudioEnabled(true);
+    console.log('Audio fully initialized and ready');
     return true;
   };
 
@@ -377,9 +418,14 @@ export default function Metronome() {
               </div>
             )}
           </button>
-          {!audioEnabled && (
+          {!audioEnabled && !audioError && (
             <p className="text-slate-400 text-sm mt-2">
               Tap to enable audio
+            </p>
+          )}
+          {audioError && (
+            <p className="text-red-400 text-sm mt-2 max-w-xs mx-auto">
+              {audioError}
             </p>
           )}
         </div>
